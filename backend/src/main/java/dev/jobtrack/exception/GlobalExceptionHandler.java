@@ -28,6 +28,12 @@ public class GlobalExceptionHandler {
         return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
+    @ExceptionHandler(AiUnavailableException.class)
+    ProblemDetail aiUnavailable(AiUnavailableException ex) {
+        HttpStatus status = ex.isNotConfigured() ? HttpStatus.SERVICE_UNAVAILABLE : HttpStatus.BAD_GATEWAY;
+        return ProblemDetail.forStatusAndDetail(status, ex.getMessage());
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     ProblemDetail unreadable(HttpMessageNotReadableException ex) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Corpo della richiesta non valido");

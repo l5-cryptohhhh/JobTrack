@@ -1,10 +1,13 @@
 package dev.jobtrack.controller;
 
+import dev.jobtrack.dto.ExtractRequest;
+import dev.jobtrack.dto.ExtractResponse;
 import dev.jobtrack.dto.JobApplicationRequest;
 import dev.jobtrack.dto.JobApplicationResponse;
 import dev.jobtrack.dto.StatusUpdateRequest;
 import dev.jobtrack.model.ApplicationStatus;
 import dev.jobtrack.service.JobApplicationService;
+import dev.jobtrack.service.JobExtractionService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -27,9 +30,16 @@ import java.util.List;
 public class JobApplicationController {
 
     private final JobApplicationService service;
+    private final JobExtractionService extraction;
 
-    public JobApplicationController(JobApplicationService service) {
+    public JobApplicationController(JobApplicationService service, JobExtractionService extraction) {
         this.service = service;
+        this.extraction = extraction;
+    }
+
+    @PostMapping("/extract")
+    public ExtractResponse extract(@Valid @RequestBody ExtractRequest request) {
+        return extraction.extract(request.text());
     }
 
     @GetMapping

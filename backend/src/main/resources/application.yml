@@ -19,6 +19,7 @@ app:
     base-url: ${AI_BASE_URL:https://api.groq.com/openai/v1}
     api-key: ${AI_API_KEY:}
     model: ${AI_MODEL:llama-3.3-70b-versatile}
+    vision-model: ${AI_VISION_MODEL:qwen/qwen3.8-27b}
   cors:
     allowed-origin: ${CORS_ORIGIN:http://localhost:5173}
 

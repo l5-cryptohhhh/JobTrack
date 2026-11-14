@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Draggable } from '@hello-pangea/dnd';
 
 const dateFormat = new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'short' });
@@ -9,6 +10,9 @@ function formatDate(isoDate) {
 }
 
 export default function ApplicationCard({ application, index, onOpen }) {
+  const [notesOpen, setNotesOpen] = useState(false);
+  const notesId = `notes-${application.id}`;
+
   return (
     <Draggable draggableId={String(application.id)} index={index}>
       {(provided, snapshot) => (
@@ -26,11 +30,31 @@ export default function ApplicationCard({ application, index, onOpen }) {
         >
           <h3 className="card__company">{application.company}</h3>
           <p className="card__role">{application.role}</p>
-          {(application.appliedAt || application.notes) && (
-            <p className="card__meta">
-              {application.appliedAt && <span>Inviata il {formatDate(application.appliedAt)}</span>}
-              {application.notes && <span>Con note</span>}
-            </p>
+          {application.appliedAt && (
+            <p className="card__meta">Inviata il {formatDate(application.appliedAt)}</p>
+          )}
+          {application.notes && (
+            <>
+              <button
+                className={`card__toggle${notesOpen ? ' card__toggle--open' : ''}`}
+                type="button"
+                aria-expanded={notesOpen}
+                aria-controls={notesId}
+                onClick={(event) => {
+                  event.stopPropagation(); // non aprire la finestra di modifica
+                  setNotesOpen((open) => !open);
+                }}
+                onKeyDown={(event) => event.stopPropagation()} // Invio/Spazio restano al pulsante
+              >
+                <span className="card__chevron" aria-hidden="true" />
+                {notesOpen ? 'Nascondi note' : 'Mostra note'}
+              </button>
+              {notesOpen && (
+                <p className="card__notes" id={notesId}>
+                  {application.notes}
+                </p>
+              )}
+            </>
           )}
         </article>
       )}

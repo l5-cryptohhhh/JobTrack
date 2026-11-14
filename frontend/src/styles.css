@@ -130,6 +130,20 @@ textarea {
   color: var(--cobalt);
 }
 
+.shot {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.shot__img {
+  height: 4.5rem;
+  max-width: 8rem;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-small);
+}
+
 .btn--block {
   width: 100%;
   padding-block: 0.75rem;
@@ -417,6 +431,44 @@ textarea.field__input {
   margin-top: 0.55rem;
   font-size: 0.8125rem;
   color: var(--ink-soft);
+}
+
+.card__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.55rem;
+  padding: 0.15rem 0;
+  border: 0;
+  background: none;
+  color: var(--cobalt);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.card__chevron {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 120ms ease;
+}
+
+.card__toggle--open .card__chevron {
+  transform: rotate(45deg);
+}
+
+.card__notes {
+  margin-top: 0.4rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--ink);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 [data-status='REJECTED'] .card {

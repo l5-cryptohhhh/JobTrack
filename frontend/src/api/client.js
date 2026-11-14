@@ -93,8 +93,8 @@ export const api = {
   login: (email, password) =>
     request('/api/auth/login', { method: 'POST', body: { email, password } }),
 
-  extractApplication: (text) =>
-    request('/api/applications/extract', { method: 'POST', body: { text } }),
+  extractApplication: (text, image) =>
+    request('/api/applications/extract', { method: 'POST', body: { text: text || null, image: image || null } }),
   listApplications: () => request('/api/applications'),
   createApplication: (data) => request('/api/applications', { method: 'POST', body: data }),
   updateApplication: (id, data) => request(`/api/applications/${id}`, { method: 'PUT', body: data }),

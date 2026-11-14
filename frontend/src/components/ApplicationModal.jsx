@@ -2,6 +2,31 @@ import { useEffect, useRef, useState } from 'react';
 import { api } from '../api/client.js';
 import { EMPTY_FORM, STATUSES } from '../constants.js';
 
+// Riduce lo screenshot (max 1600px, JPEG) così il caricamento resta leggero.
+function imageToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, 1600 / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL('image/jpeg', 0.85));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Immagine non leggibile.'));
+    };
+    img.src = url;
+  });
+}
+
 function toForm(application) {
   if (!application) return EMPTY_FORM;
   return {
@@ -38,6 +63,7 @@ export default function ApplicationModal({ application, onSave, onDelete, onClos
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [extracting, setExtracting] = useState(false);
   const [extractError, setExtractError] = useState('');
+  const [image, setImage] = useState(null); // screenshot come data URL
 
   const isEdit = Boolean(application);
 
@@ -56,12 +82,31 @@ export default function ApplicationModal({ application, onSave, onDelete, onClos
     };
   }
 
+  async function attachImage(file) {
+    if (!file || !file.type.startsWith('image/')) return;
+    setExtractError('');
+    try {
+      setImage(await imageToDataUrl(file));
+    } catch (err) {
+      setExtractError(err.message);
+    }
+  }
+
+  // Ctrl+V di uno screenshot in qualsiasi punto della finestra
+  function handlePaste(event) {
+    const file = [...event.clipboardData.files].find((f) => f.type.startsWith('image/'));
+    if (file) {
+      event.preventDefault();
+      attachImage(file);
+    }
+  }
+
   // Legge il testo dell'annuncio e compila i campi ancora vuoti: non sovrascrive ciò che hai scritto.
   async function fillFromText() {
     setExtractError('');
     setExtracting(true);
     try {
-      const { company, role, summary } = await api.extractApplication(form.jobDescription);
+      const { company, role, summary } = await api.extractApplication(form.jobDescription, image);
       setForm((current) => ({
         ...current,
         company: current.company.trim() || company || '',
@@ -109,6 +154,7 @@ export default function ApplicationModal({ application, onSave, onDelete, onClos
         event.preventDefault();
         onClose();
       }}
+      onPaste={handlePaste}
       onMouseDown={(event) => {
         // pressione sullo sfondo (fuori dal contenuto) = chiudi
         if (event.target === dialogRef.current) onClose();
@@ -177,13 +223,33 @@ export default function ApplicationModal({ application, onSave, onDelete, onClos
             onChange={update('jobDescription')}
           />
           <span className="field__hint">
-            Incolla qui l'annuncio, poi premi il pulsante: azienda, ruolo e riassunto si compilano da soli.
+            Incolla qui l'annuncio, oppure carica uno screenshot (anche con Ctrl+V), poi premi il
+            pulsante: azienda, ruolo e riassunto si compilano da soli.
           </span>
+          {image ? (
+            <span className="shot">
+              <img className="shot__img" src={image} alt="Screenshot dell'annuncio" />
+              <button className="link" type="button" onClick={() => setImage(null)}>
+                Rimuovi screenshot
+              </button>
+            </span>
+          ) : (
+            <input
+              className="field__input"
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              aria-label="Carica uno screenshot dell'annuncio"
+              onChange={(event) => {
+                attachImage(event.target.files[0]);
+                event.target.value = '';
+              }}
+            />
+          )}
           <button
             className="btn btn--ai"
             type="button"
             onClick={fillFromText}
-            disabled={extracting || busy || form.jobDescription.trim() === ''}
+            disabled={extracting || busy || (form.jobDescription.trim() === '' && !image)}
           >
             {extracting ? "Leggo l'annuncio…" : "Compila dall'annuncio"}
           </button>

@@ -39,7 +39,7 @@ public class JobApplicationController {
 
     @PostMapping("/extract")
     public ExtractResponse extract(@Valid @RequestBody ExtractRequest request) {
-        return extraction.extract(request.text());
+        return extraction.extract(request.text(), request.image());
     }
 
     @GetMapping
